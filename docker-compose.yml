@@ -4,6 +4,7 @@ services:
   backend:
     build: ./backend
     container_name: ranoson_backend
+    restart: always
     volumes:
       - ./backend:/app
       - ranoson_data:/app/data
@@ -19,6 +20,7 @@ services:
   frontend:
     build: ./frontend
     container_name: ranoson_frontend
+    restart: always
     depends_on:
       - backend
     volumes:
