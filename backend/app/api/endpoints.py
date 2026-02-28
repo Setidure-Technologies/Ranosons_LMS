@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import os
+import shutil
+import uuid
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List
 from .. import crud, models, schemas
@@ -105,7 +108,6 @@ def create_role(role: schemas.RoleCreate, db: Session = Depends(get_db), current
 
 # --- Modules & Learning ---
 
-from fastapi import BackgroundTasks
 from .tasks import process_video_task
 
 @router.post("/modules", response_model=schemas.Module)
@@ -159,6 +161,26 @@ def delete_module(module_id: int, db: Session = Depends(get_db), current_user: m
     if not db_module:
         raise HTTPException(status_code=404, detail="Module not found")
     
+    # Cleanup Files
+    if db_module.video_url and "static/videos" in db_module.video_url:
+        try:
+            # URL: http://localhost:8000/static/videos/xyz.mp4 -> static/videos/xyz.mp4
+            video_path = db_module.video_url.split("8000/")[-1]
+            if os.path.exists(video_path):
+                os.remove(video_path)
+                print(f"🗑️ Deleted original video: {video_path}")
+        except Exception as e:
+            print(f"⚠️ Error deleting original video: {e}")
+
+    # Delete segmented videos directory
+    course_dir = os.path.join("static", "courses", str(module_id))
+    if os.path.exists(course_dir):
+        try:
+            shutil.rmtree(course_dir)
+            print(f"🗑️ Deleted course directory: {course_dir}")
+        except Exception as e:
+            print(f"⚠️ Error deleting course directory: {e}")
+
     # Delete user progress (unassign from all users)
     db.query(models.UserProgress).filter(models.UserProgress.module_id == module_id).delete()
     # Delete associated steps
@@ -208,11 +230,6 @@ def create_resource(resource: schemas.LearningResourceCreate, db: Session = Depe
     return crud.create_resource(db, resource)
 
 # --- File Upload ---
-
-from fastapi import UploadFile, File
-import shutil
-import os
-import uuid
 
 @router.post("/upload/video")
 async def upload_video(file: UploadFile = File(...), current_user: models.User = Depends(get_current_user)):
