@@ -75,6 +75,7 @@ class ModuleBase(BaseModel):
     title: str
     description: Optional[str] = None
     video_url: Optional[str] = None
+    duration: Optional[int] = None
 
 class ModuleCreate(ModuleBase):
     steps: List[ModuleStepCreate] = []

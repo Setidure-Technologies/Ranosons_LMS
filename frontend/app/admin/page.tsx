@@ -6,21 +6,38 @@ import { Users, BookOpen, Activity, Plus, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminDashboard() {
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     const [stats, setStats] = useState({
         totalUsers: 0,
-        totalModules: 0,
-        activeUsers: 0
+        totalModules: 0
     });
 
     useEffect(() => {
-        // Mock stats for now, replace with API call later
-        setStats({
-            totalUsers: 12,
-            totalModules: 5,
-            activeUsers: 8
-        });
-    }, []);
+        const fetchStats = async () => {
+            if (!token) return;
+            try {
+                // Fetch Users Count
+                const usersRes = await fetch('http://localhost:8000/api/v1/users', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const usersData = await usersRes.json();
+
+                // Fetch Modules Count
+                const modulesRes = await fetch('http://localhost:8000/api/v1/modules', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const modulesData = await modulesRes.json();
+
+                setStats({
+                    totalUsers: Array.isArray(usersData) ? usersData.length : 0,
+                    totalModules: Array.isArray(modulesData) ? modulesData.length : 0
+                });
+            } catch (error) {
+                console.error('Error fetching dashboard stats:', error);
+            }
+        };
+        fetchStats();
+    }, [token]);
 
     if (user?.role_id !== 1) {
         return (
@@ -46,7 +63,7 @@ export default function AdminDashboard() {
             </header>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                 <div className="glass-card p-6 rounded-3xl flex flex-col items-start gap-3 hover:bg-slate-800/60 transition-colors border border-transparent">
                     <div className="flex items-center justify-between w-full mb-2">
                         <div className="h-12 w-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shadow-lg shadow-blue-500/10">
@@ -67,17 +84,6 @@ export default function AdminDashboard() {
                     </div>
                     <h3 className="text-slate-400 text-sm font-medium tracking-wide">Total Courses</h3>
                     <p className="text-4xl font-bold text-primary tracking-tight">{stats.totalModules}</p>
-                </div>
-
-                <div className="glass-card p-6 rounded-3xl flex flex-col items-start gap-3 hover:bg-slate-800/60 transition-colors border border-transparent">
-                    <div className="flex items-center justify-between w-full mb-2">
-                        <div className="h-12 w-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/10">
-                            <Activity size={24} />
-                        </div>
-                        <span className="text-[10px] font-bold text-slate-300 bg-slate-700/50 px-2.5 py-1 rounded-lg border border-slate-600/50 shadow-sm">Now</span>
-                    </div>
-                    <h3 className="text-slate-400 text-sm font-medium tracking-wide">Active Users</h3>
-                    <p className="text-4xl font-bold text-primary tracking-tight">{stats.activeUsers}</p>
                 </div>
             </div>
 

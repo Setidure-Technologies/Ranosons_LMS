@@ -35,7 +35,7 @@ export default function Dashboard() {
           title: p.module.title,
           status: p.status,
           progress: p.status === "Completed" ? 100 : (p.status === "In Progress" ? (p.current_step_index * 10) : 0),
-          duration: "10 min" // Placeholder as duration is not yet in DB
+          duration: p.module.duration ? `${Math.round(p.module.duration / 60)} min` : "0 min"
         }));
       setModules(realModules);
     } else {
@@ -132,13 +132,17 @@ export default function Dashboard() {
                         <Clock size={14} className="text-slate-400" />
                         {mod.duration}
                       </span>
-                      <span className="h-1.5 w-1.5 bg-slate-600 rounded-full"></span>
-                      <span className={clsx(
-                        "font-bold uppercase tracking-wide text-xs",
-                        isInProgress ? "text-accent" : "text-slate-500"
-                      )}>
-                        {mod.status}
-                      </span>
+                      {mod.status !== "Not Started" && (
+                        <>
+                          <span className="h-1.5 w-1.5 bg-slate-600 rounded-full"></span>
+                          <span className={clsx(
+                            "font-bold uppercase tracking-wide text-xs",
+                            isInProgress ? "text-accent" : "text-slate-500"
+                          )}>
+                            {mod.status}
+                          </span>
+                        </>
+                      )}
                     </div>
 
                     {/* Progress Bar for In Progress */}

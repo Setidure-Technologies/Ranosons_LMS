@@ -71,6 +71,10 @@ def process_video_task(module_id: int, video_path: str, description: str = None)
         from moviepy.video.io.VideoFileClip import VideoFileClip
         
         with VideoFileClip(abs_video_path) as video:
+            # Capture duration
+            module.duration = int(video.duration)
+            db.commit()
+            
             for idx, mod_data in enumerate(modules_data):
                 topic = mod_data['topic_name']
                 start = float(mod_data['start_time'])

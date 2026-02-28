@@ -41,6 +41,7 @@ class Module(Base):
     objectives = Column(Text, nullable=True) # JSON or Markdown
     applications = Column(Text, nullable=True) # JSON or Markdown
     quiz_data = Column(Text, nullable=True) # JSON string of quiz questions
+    duration = Column(Integer, nullable=True) # In seconds
     is_processing = Column(Boolean, default=False)
     
     steps = relationship("ModuleStep", back_populates="module", order_by="ModuleStep.order_index")
