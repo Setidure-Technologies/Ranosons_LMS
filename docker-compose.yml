@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: ranoson_backend
+    volumes:
+      - ./backend:/app
+      - ranoson_data:/app/data
+    environment:
+      - SECRET_KEY=supersecretkeychangeinproduction
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+    ports:
+      - "8000:8000"
+    networks:
+      - ranoson_network
+
+  frontend:
+    build: ./frontend
+    container_name: ranoson_frontend
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+    ports:
+      - "3000:3000"
+    networks:
+      - ranoson_network
+
+volumes:
+  ranoson_data:
+
+networks:
+  ranoson_network:
+    driver: bridge

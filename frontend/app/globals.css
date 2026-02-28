@@ -1,0 +1,264 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-highlight: var(--highlight);
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+
+  --color-glass-border: rgba(255, 255, 255, 0.1);
+  --color-glass-surface: rgba(30, 41, 59, 0.4);
+  --color-glass-highlight: rgba(255, 255, 255, 0.05);
+
+  --animate-fade-in-up: fadeInUp 0.5s ease-out forwards;
+  --animate-pulse-slow: pulseSlow 3s infinite ease-in-out;
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulseSlow {
+
+    0%,
+    100% {
+      opacity: 0.5;
+    }
+
+    50% {
+      opacity: 0.8;
+    }
+  }
+}
+
+/* Load fonts via Google Fonts import for now, or assume next/font is working. 
+   For a robust "Outfit" font, we usually use next/font in layout.tsx, but variables here work if set there.
+   We will ensure layout.tsx loads the font or we import here. */
+
+:root {
+  /* Light Mode - New Palette */
+  --background: #FBFCFE;
+  /* Wash Me */
+  --foreground: #292940;
+  /* Valhalla */
+
+  --primary: #0B4FCD;
+  /* Darker Blue for better contrast */
+  --secondary: #E2E6EE;
+  /* Ghostly Tuna */
+  --accent: #EEAC5C;
+  /* Shiny Trumpet */
+  --highlight: #C08CEE;
+  /* Luminous Lavender */
+
+  --glass-bg: rgba(251, 252, 254, 0.85);
+  /* More opaque */
+  --glass-border: rgba(41, 41, 64, 0.1);
+  /* Darker border */
+  --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.dark {
+  /* Deep Blue/Purple Night Gradient */
+  --background: #0f172a;
+  --foreground: #FBFCFE;
+  /* Wash Me for text in dark mode */
+
+  /* Adjusted for dark mode visibility */
+  --primary: #3b82f6;
+  --secondary: #1e293b;
+  --accent: #f59e0b;
+  --highlight: #a855f7;
+
+  --glass-bg: rgba(15, 23, 42, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.dark body {
+  background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #0f172a 60%, #020617 100%);
+  background-attachment: fixed;
+}
+
+/* Glass Utilities - Context Aware */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .glass-card {
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.4));
+}
+
+.dark .glass-card:hover {
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.5));
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 0 15px rgba(56, 189, 248, 0.1);
+}
+
+/* Light mode card hover */
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.text-glow {
+  text-shadow: none;
+  /* No glow in light mode by default for readability */
+}
+
+.dark .text-glow {
+  text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+}
+
+/* Markdown Prose Styles */
+.prose {
+  color: var(--foreground);
+  /* Removed max-width to allow full width usage */
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  color: var(--foreground);
+}
+
+.prose h1 {
+  font-size: 1.875rem;
+}
+
+.prose h2 {
+  font-size: 1.5rem;
+}
+
+.prose h3 {
+  font-size: 1.25rem;
+}
+
+.prose h4 {
+  font-size: 1.125rem;
+}
+
+.prose p {
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
+  line-height: 1.7;
+  color: var(--foreground);
+}
+
+.prose ul,
+.prose ol {
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
+  padding-left: 1.625em;
+  color: var(--foreground);
+}
+
+.prose ul {
+  list-style-type: disc;
+}
+
+.prose ol {
+  list-style-type: decimal;
+}
+
+.prose li {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+  display: list-item;
+  color: var(--foreground);
+}
+
+.prose a {
+  color: var(--primary);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+/* Hide first H1 or H2 to avoid duplication with page title */
+.prose>h1:first-of-type,
+.prose>h2:first-of-type {
+  display: none;
+}
+
+.prose strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.prose code {
+  background-color: rgba(100, 116, 139, 0.2);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.prose pre {
+  background-color: rgba(15, 23, 42, 0.6);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.prose-invert h1,
+.prose-invert h2,
+.prose-invert h3,
+.prose-invert h4 {
+  color: #f8fafc;
+}
+
+.prose-invert p {
+  color: #cbd5e1;
+}
+
+.prose-invert a {
+  color: #60a5fa;
+}
+
+.prose-invert strong {
+  color: #f1f5f9;
+}
+
+.prose-invert code {
+  color: #f1f5f9;
+  background-color: rgba(100, 116, 139, 0.3);
+}
