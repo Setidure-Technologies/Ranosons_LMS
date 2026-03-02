@@ -38,13 +38,35 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.refresh(db_user)
     return db_user
 
-def register_user(db: Session, db_user: models.User, password: str):
-    from .auth import get_password_hash
-    db_user.hashed_password = get_password_hash(password)
-    db_user.is_registered = True
+def delete_user(db: Session, user_id: int):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not db_user:
+        return False
+    
+    # Fundamental Protection: Prevent deleting the primary admin
+    if db_user.employee_code == 'ADMIN001':
+        raise ValueError("The primary administrator account (ADMIN001) cannot be deleted.")
+    
+    # 1. Cleanup Progress
+    db.query(models.UserProgress).filter(models.UserProgress.user_id == user_id).delete()
+    
+    # 2. Cleanup Quiz Attempts
+    db.query(models.QuizAttempt).filter(models.QuizAttempt.user_id == user_id).delete()
+    
+    # 3. Cleanup Comments
+    # First handle replies to user comments? 
+    # Actually, let's just delete comments and their replies if we want to be thorough, 
+    # or just delete the user's comments.
+    db.query(models.Comment).filter(models.Comment.user_id == user_id).delete()
+    
+    # 4. Handle Modules created by this user
+    # Set created_by_id to None instead of deleting the module
+    db.query(models.Module).filter(models.Module.created_by_id == user_id).update({"created_by_id": None})
+    
+    # 5. Delete User
+    db.delete(db_user)
     db.commit()
-    db.refresh(db_user)
-    return db_user
+    return True
 
 # --- Module Management ---
 def create_module_with_steps(db: Session, module: schemas.ModuleCreate, creator_id: int):

@@ -206,22 +206,49 @@ class CourseGenerator:
             data = json.loads(content)
             
             if isinstance(data, dict):
+                # case 1: {"modules": [...]}
+                found_list = False
                 for key, value in data.items():
                     if isinstance(value, list):
                         data = value
+                        found_list = True
                         break
+                # case 2: {"topic_name": "...", "start_time": ...} (single module)
+                if not found_list and 'topic_name' in data:
+                    data = [data]
             
             valid_modules = []
             if isinstance(data, list):
                 for item in data:
                     if isinstance(item, dict) and 'topic_name' in item and 'start_time' in item:
+                        # Ensure end_time exists
+                        if 'end_time' not in item:
+                            item['end_time'] = item['start_time'] + 60
                         valid_modules.append(item)
             
+            # Fallback: If no modules were identified, create one covering the whole video
+            if not valid_modules:
+                print("   ⚠️ No modules identified by AI. Creating fallback module.")
+                # We don't have total duration yet, but we can set a large enough end_time
+                # that will be capped by video.duration in tasks.py
+                fallback_module = {
+                    "topic_name": "Course Overview",
+                    "start_time": 0.0,
+                    "end_time": 9999.0 
+                }
+                valid_modules = [fallback_module]
+
             if os.path.exists(audio_file):
                 os.remove(audio_file)
 
             print(f"   🧹 Post-processing: Merging short segments (under 60s)...")
             final_modules = self.smart_merge_modules(valid_modules, min_duration=60)
+            
+            # Final Safety: If merging somehow wiped everything (shouldn't happen with 1 mod), 
+            # ensure we return at least one valid module.
+            if not final_modules and valid_modules:
+                final_modules = valid_modules[:1]
+
             print(f"   ✅ Merged {len(valid_modules)} -> {len(final_modules)} modules.")
 
             return final_modules, transcript_text

@@ -179,8 +179,6 @@ class LearningResource(LearningResourceBase):
 # --- Improved Progress Schemas ---
 class UserProgressWithModule(UserProgress):
     module: Optional[Module] = None
-    class Config:
-        from_attributes = True
 
 class AssignModuleRequest(BaseModel):
     user_id: int
@@ -188,8 +186,6 @@ class AssignModuleRequest(BaseModel):
 
 class UserMe(User):
     progress: List[UserProgressWithModule] = []
-    class Config:
-        from_attributes = True
 
 # --- Quiz Attempts ---
 class QuizQuestionResult(BaseModel):
@@ -201,7 +197,7 @@ class QuizQuestionResult(BaseModel):
     explanation: Optional[str] = None
 
 class QuizAttemptBase(BaseModel):
-    module_id: int
+    module_id: Optional[int] = None
     score: float
     max_score: float
     passed: bool

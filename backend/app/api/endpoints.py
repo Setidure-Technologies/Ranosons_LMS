@@ -87,6 +87,21 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), c
     users = crud.get_users(db, skip=skip, limit=limit)
     return users
 
+@router.delete("/users/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    # TODO: Check if current_user is Admin
+    if current_user.role_id != 1:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    try:
+        deleted = crud.delete_user(db, user_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return {"message": "User deleted successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 # --- Admin: Role Management ---
 
 @router.get("/roles", response_model=List[schemas.Role])
@@ -185,6 +200,8 @@ def delete_module(module_id: int, db: Session = Depends(get_db), current_user: m
     db.query(models.UserProgress).filter(models.UserProgress.module_id == module_id).delete()
     # Delete associated steps
     db.query(models.ModuleStep).filter(models.ModuleStep.module_id == module_id).delete()
+    # Delete quiz attempts
+    db.query(models.QuizAttempt).filter(models.QuizAttempt.module_id == module_id).delete()
     # Delete the module
     db.delete(db_module)
     db.commit()

@@ -194,6 +194,33 @@ export default function UserManagement() {
         }
     };
 
+    const handleDeleteUser = async (userId: number) => {
+        if (!window.confirm("Are you sure you want to delete this user? This will also remove their progress and quiz attempts.")) {
+            return;
+        }
+
+        try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+            const res = await fetch(`${apiUrl}/users/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (res.ok) {
+                fetchUsers();
+                alert("User deleted successfully!");
+            } else {
+                const errorData = await res.json();
+                alert(errorData.detail || "Failed to delete user");
+            }
+        } catch (error: any) {
+            console.error("Error deleting user:", error);
+            alert("An error occurred while deleting user.");
+        }
+    };
+
     return (
         <main className="min-h-screen pb-32 pt-8 px-5 lg:max-w-4xl mx-auto transition-colors duration-300">
             <header className="mb-8 flex justify-between items-end animate-fade-in-up">
@@ -275,9 +302,15 @@ export default function UserManagement() {
                                     >
                                         <BookOpen size={18} />
                                     </button>
-                                    <button className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all">
-                                        <Trash2 size={18} />
-                                    </button>
+                                    {user.employee_code !== 'ADMIN001' && (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleDeleteUser(user.id); }}
+                                            className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                                            title="Delete User"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}
