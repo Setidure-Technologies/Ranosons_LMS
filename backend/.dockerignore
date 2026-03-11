@@ -21,6 +21,8 @@ coverage.xml
 .mypy_cache
 .pytest_cache
 .hypothesiss
+.env
+.env.*
 ranoson.db
 *.db
 *.sqlite3

@@ -114,6 +114,10 @@ def process_video_task(module_id: int, video_path: str, description: str = None)
         module.is_processing = False
         db.commit()
         print(f"✅ Processing complete for Module {module_id}")
+        
+        # Trigger Hindi translation as follow-up
+        from ..services.translator import translate_module_content
+        translate_module_content(module_id)
 
     except Exception as e:
         print(f"❌ Error in process_video_task: {e}")

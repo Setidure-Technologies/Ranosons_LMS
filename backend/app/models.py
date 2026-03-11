@@ -44,6 +44,12 @@ class Module(Base):
     duration = Column(Integer, nullable=True) # In seconds
     is_processing = Column(Boolean, default=False)
     
+    # Hindi translations (cached)
+    hindi_description = Column(Text, nullable=True)
+    hindi_objectives = Column(Text, nullable=True)
+    hindi_applications = Column(Text, nullable=True)
+    hindi_quiz_data = Column(Text, nullable=True)
+    
     steps = relationship("ModuleStep", back_populates="module", order_by="ModuleStep.order_index")
     progress = relationship("UserProgress", back_populates="module")
     comments = relationship("Comment", back_populates="module")
@@ -59,6 +65,10 @@ class ModuleStep(Base):
     content = Column(Text) # Markdown instructions
     media_url = Column(String, nullable=True) # Optional image/video for this step
     step_type = Column(String, default="instruction") # instruction, action, question
+    
+    # Hindi translations (cached)
+    hindi_title = Column(String, nullable=True)
+    hindi_content = Column(Text, nullable=True)
     
     module = relationship("Module", back_populates="steps")
     assignment = relationship("AssignmentQuestion", uselist=False, back_populates="step")

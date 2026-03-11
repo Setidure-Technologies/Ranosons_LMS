@@ -14,6 +14,25 @@ router = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
+
+def _swap_hindi_fields_module(module):
+    """Swap English fields with Hindi translations (in-place) for non-admin users."""
+    if module.hindi_description:
+        module.description = module.hindi_description
+    if module.hindi_objectives:
+        module.objectives = module.hindi_objectives
+    if module.hindi_applications:
+        module.applications = module.hindi_applications
+    if module.hindi_quiz_data:
+        module.quiz_data = module.hindi_quiz_data
+    # Swap step fields
+    if hasattr(module, 'steps'):
+        for step in module.steps:
+            if step.hindi_title:
+                step.title = step.hindi_title
+            if step.hindi_content:
+                step.content = step.hindi_content
+
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -124,6 +143,7 @@ def create_role(role: schemas.RoleCreate, db: Session = Depends(get_db), current
 # --- Modules & Learning ---
 
 from .tasks import process_video_task
+from ..services.translator import translate_module_content
 
 @router.post("/modules", response_model=schemas.Module)
 def create_module(module: schemas.ModuleCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
@@ -147,26 +167,39 @@ def create_module(module: schemas.ModuleCreate, background_tasks: BackgroundTask
             background_tasks.add_task(process_video_task, db_module.id, video_path, module.description)
         except Exception as e:
             print(f"Error triggering background task: {e}")
+    else:
+        # No video processing, trigger Hindi translation directly
+        background_tasks.add_task(translate_module_content, db_module.id)
             
     return db_module
 
 @router.get("/modules", response_model=List[schemas.Module])
 def read_modules(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    return crud.get_all_modules(db)
+    modules = crud.get_all_modules(db)
+    # Non-admin users get Hindi content swapped in
+    if current_user.role_id != 1:
+        for m in modules:
+            _swap_hindi_fields_module(m)
+    return modules
 
 @router.get("/modules/{module_id}", response_model=schemas.Module)
 def read_module(module_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     module = crud.get_module(db, module_id)
     if not module:
         raise HTTPException(status_code=404, detail="Module not found")
+    # Non-admin users get Hindi content
+    if current_user.role_id != 1:
+        _swap_hindi_fields_module(module)
     return module
 
 @router.put("/modules/{module_id}", response_model=schemas.Module)
-def update_module(module_id: int, module: schemas.ModuleCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+def update_module(module_id: int, module: schemas.ModuleCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     # TODO: Check admin permissions
     db_module = crud.update_module(db, module_id, module)
     if not db_module:
         raise HTTPException(status_code=404, detail="Module not found")
+    # Re-translate Hindi content after English edit
+    background_tasks.add_task(translate_module_content, module_id)
     return db_module
 
 @router.delete("/modules/{module_id}")

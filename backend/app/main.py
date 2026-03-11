@@ -102,5 +102,54 @@ def _create_dev_user_if_missing():
 # ...existing code...
 
 @app.on_event("startup")
-def _on_startup_create_dev_user():
+def _on_startup():
+    # 1. Create all tables
+    database.Base.metadata.create_all(bind=database.engine)
+    print("Database tables ensured.")
+
+    # 1b. Add Hindi translation columns if missing (SQLite ALTER TABLE)
+    _ensure_hindi_columns()
+
+    # 2. Seed roles + ADMIN001
+    from .seed_mvp import seed_data
+    seed_data()
+    print("Seed data ensured.")
+
+    # 3. Create dev users
     _create_dev_user_if_missing()
+
+
+def _ensure_hindi_columns():
+    """Add Hindi translation columns if they don't exist yet (for existing databases)."""
+    from sqlalchemy import text, inspect
+    inspector = inspect(database.engine)
+
+    # Module columns
+    module_cols = [c['name'] for c in inspector.get_columns('modules')]
+    hindi_module_cols = {
+        'hindi_description': 'TEXT',
+        'hindi_objectives': 'TEXT',
+        'hindi_applications': 'TEXT',
+        'hindi_quiz_data': 'TEXT',
+    }
+    for col_name, col_type in hindi_module_cols.items():
+        if col_name not in module_cols:
+            with database.engine.connect() as conn:
+                conn.execute(text(f"ALTER TABLE modules ADD COLUMN {col_name} {col_type}"))
+                conn.commit()
+            print(f"  Added column modules.{col_name}")
+
+    # ModuleStep columns
+    step_cols = [c['name'] for c in inspector.get_columns('module_steps')]
+    hindi_step_cols = {
+        'hindi_title': 'VARCHAR',
+        'hindi_content': 'TEXT',
+    }
+    for col_name, col_type in hindi_step_cols.items():
+        if col_name not in step_cols:
+            with database.engine.connect() as conn:
+                conn.execute(text(f"ALTER TABLE module_steps ADD COLUMN {col_name} {col_type}"))
+                conn.commit()
+            print(f"  Added column module_steps.{col_name}")
+
+    print("Hindi translation columns ensured.")

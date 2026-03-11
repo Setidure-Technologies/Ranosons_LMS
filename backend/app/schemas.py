@@ -67,6 +67,8 @@ class ModuleStep(ModuleStepBase):
     id: int
     module_id: int
     assignment: Optional[AssignmentQuestion] = None
+    hindi_title: Optional[str] = None
+    hindi_content: Optional[str] = None
     class Config:
         from_attributes = True
 
@@ -93,6 +95,12 @@ class Module(ModuleBase):
     applications: Optional[str] = None
     quiz_data: Optional[str] = None
     is_processing: bool = False
+    
+    # Hindi translations
+    hindi_description: Optional[str] = None
+    hindi_objectives: Optional[str] = None
+    hindi_applications: Optional[str] = None
+    hindi_quiz_data: Optional[str] = None
     
     class Config:
         from_attributes = True
