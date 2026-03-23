@@ -42,7 +42,7 @@ export default function UserManagement() {
 
     const fetchRoles = async () => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api/v1';
             const res = await fetch(`${apiUrl}/roles`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -64,7 +64,7 @@ export default function UserManagement() {
             // In a real app, this would be a dedicated endpoint
             // For MVP, we might need to add this endpoint or mock it if not available
             // Let's assume GET /api/v1/users exists for admins
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api/v1';
             const res = await fetch(`${apiUrl}/users`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -81,7 +81,7 @@ export default function UserManagement() {
 
     const fetchModules = async () => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api/v1';
             const res = await fetch(`${apiUrl}/modules`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -99,7 +99,7 @@ export default function UserManagement() {
         if (!selectedUserId || !selectedModuleId) return;
 
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api/v1';
             const res = await fetch(`${apiUrl}/assignments`, {
                 method: 'POST',
                 headers: {
@@ -133,7 +133,7 @@ export default function UserManagement() {
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api/v1';
             const res = await fetch(`${apiUrl}/users`, {
                 method: 'POST',
                 headers: {
@@ -166,7 +166,7 @@ export default function UserManagement() {
     const handleCreateRole = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api/v1';
             const res = await fetch(`${apiUrl}/roles`, {
                 method: 'POST',
                 headers: {
@@ -200,7 +200,7 @@ export default function UserManagement() {
         }
 
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api/v1';
             const res = await fetch(`${apiUrl}/users/${userId}`, {
                 method: 'DELETE',
                 headers: {

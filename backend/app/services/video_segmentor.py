@@ -10,9 +10,9 @@ from groq import Groq
 import numpy as np
 
 # --- CONFIGURATION ---
-STRUCTURE_MODEL = "llama-3.3-70b-versatile"
+STRUCTURE_MODEL = "llama-3.1-8b-instant"
 WHISPER_MODEL = "whisper-large-v3"
-VISION_MODEL_DEFAULT = "meta-llama/llama-4-maverick-17b-128e-instruct"  # Updated from decommissioned 90b model 
+VISION_MODEL_DEFAULT = "meta-llama/llama-4-scout-17b-16e-instruct"
 
 # --- PROMPTS ---
 DISCOVERY_PROMPT = """

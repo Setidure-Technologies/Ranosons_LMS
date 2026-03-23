@@ -4,7 +4,31 @@ from ..database import SessionLocal
 from ..services.video_segmentor import CourseGenerator
 import os
 import json
+import subprocess
 from dotenv import load_dotenv
+
+
+def convert_to_h264(abs_video_path):
+    """Convert HEVC/MOV to H.264 MP4 so moviepy can process it."""
+    ext = os.path.splitext(abs_video_path)[1].lower()
+    if ext not in ['.mov', '.avi', '.mkv', '.wmv']:
+        return abs_video_path, False
+
+    converted_path = os.path.splitext(abs_video_path)[0] + '_converted.mp4'
+    print(f"   🔄 Converting {ext.upper()} to H.264 MP4...")
+    result = subprocess.run([
+        'ffmpeg', '-i', abs_video_path,
+        '-vcodec', 'libx264', '-crf', '23', '-preset', 'fast',
+        '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2',  # ensure even dimensions
+        '-acodec', 'aac', '-y', converted_path
+    ], capture_output=True)
+
+    if result.returncode == 0:
+        print(f"   ✅ Conversion successful: {converted_path}")
+        return converted_path, True
+    else:
+        print(f"   ⚠️ Conversion failed: {result.stderr.decode()[-300:]}")
+        return abs_video_path, False
 
 load_dotenv()
 
@@ -34,7 +58,10 @@ def process_video_task(module_id: int, video_path: str, description: str = None)
         # We need the absolute path for the segmentor
         # video_path is likely relative like "static/videos/..."
         abs_video_path = os.path.abspath(video_path)
-        
+
+        # Convert HEVC/MOV to H.264 MP4 if needed (e.g. iPhone videos)
+        abs_video_path, was_converted = convert_to_h264(abs_video_path)
+
         # Create output directory for segments
         output_dir = os.path.join("static", "courses", str(module_id))
         os.makedirs(output_dir, exist_ok=True)
@@ -105,11 +132,16 @@ def process_video_task(module_id: int, video_path: str, description: str = None)
                     title=topic,
                     content=notes_content,
                     step_type="instruction",
-                    media_url=f"http://localhost:8000/{segment_rel_path}" # TODO: Use proper base URL
+                    media_url=f"http://localhost:8001/{segment_rel_path}" # TODO: Use proper base URL
                 )
                 db.add(step)
                 db.commit()
         
+        # Clean up temp converted file if we created one
+        if was_converted and os.path.exists(abs_video_path):
+            os.remove(abs_video_path)
+            print(f"   🗑️ Removed temp converted file")
+
         # Mark as done
         module.is_processing = False
         db.commit()

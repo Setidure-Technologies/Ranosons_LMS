@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-TRANSLATION_MODEL = "llama-3.3-70b-versatile"
+TRANSLATION_MODEL = "llama-3.1-8b-instant"
 
 TRANSLATE_PROMPT = """You are an expert English-to-Hindi translator for a factory worker training platform in India. The readers are CNC operators, spring makers, and quality inspectors who speak Hinglish on the shop floor.
 
@@ -53,20 +53,21 @@ RULES:
 5. Keep numbers, units (mm, cm, kg, etc.), and measurements in English/Arabic numerals.
 6. Output ONLY the translated text. Do NOT add any explanation or preamble.
 7. CRITICAL: Translate LITERALLY. Do NOT add extra content, do NOT elaborate, do NOT expand the text. If the input is a short phrase, the output must also be a short phrase.
+8. CRITICAL: Preserve EVERY newline and blank line from the input EXACTLY. Each line in the input must be a separate line in the output. NEVER merge multiple lines into one paragraph.
 """
 
 TRANSLATE_QUIZ_PROMPT = """You are an expert English-to-Hindi translator for factory worker training quizzes. Translate the following quiz JSON data to Hindi.
 
 RULES:
-1. Translate "question", "options" (array items), "correct_answer", and "explanation" fields to Hindi (Devanagari script).
-2. Use SIMPLE everyday Hindi that factory workers understand. Write like a senior worker talking to a new worker.
-3. TRANSLITERATE (write in Devanagari) common workplace terms — do NOT translate them into formal Hindi:
+1. CRITICAL: Keep ALL JSON keys exactly as-is in English: "question", "options", "correct_answer", "explanation", "type", "module_index", "tolerance". NEVER translate or rename any key.
+2. Only translate the VALUES of "question", "options" (each array item), "correct_answer", and "explanation" to Hindi (Devanagari script).
+3. Use SIMPLE everyday Hindi that factory workers understand. Write like a senior worker talking to a new worker.
+4. TRANSLITERATE (write in Devanagari) common workplace terms — do NOT translate them into formal Hindi:
    Work order→वर्क ऑर्डर, Rejection→रिजेक्शन, Quality→क्वालिटी, Inspection→इंस्पेक्शन, Drawing→ड्रॉइंग,
    Specification→स्पेसिफिकेशन, Process→प्रोसेस, Scrap→स्क्रैप, Hold card→होल्ड कार्ड, Operator→ऑपरेटर,
    Material→मटेरियल, Customer→कस्टमर, Parameter→पैरामीटर, Tolerance→टॉलरेंस, Dimension→डायमेंशन,
    Caliper→कैलिपर, Spring→स्प्रिंग, Machine→मशीन, Report→रिपोर्ट, Defect→डिफेक्ट, QA→QA,
    Production→प्रोडक्शन, Control→कंट्रोल, Non-conformance→नॉन-कन्फॉर्मेन्स, Corrective action→करेक्टिव एक्शन.
-4. PRESERVE "type", "module_index", "tolerance" fields UNCHANGED.
 5. Keep numbers and units in English.
 6. The correct_answer MUST match exactly one of the translated options.
 7. Return ONLY valid JSON — no markdown, no explanation.
@@ -79,6 +80,24 @@ class HindiTranslator:
         if not self.api_key:
             raise ValueError("GROQ_API_KEY is required for translation")
         self.client = Groq(api_key=self.api_key)
+
+    def translate_title(self, title: str) -> str:
+        """Translate a short title/heading to Hindi — output must be equally short."""
+        if not title or not title.strip():
+            return title
+        try:
+            completion = self.client.chat.completions.create(
+                model=TRANSLATION_MODEL,
+                messages=[
+                    {"role": "system", "content": "Translate the following English title to Hindi (Devanagari script). Output ONLY the translated title — a short phrase, nothing else. Do NOT add explanations, bullet points, headings, or extra content."},
+                    {"role": "user", "content": title}
+                ],
+                temperature=0.1,
+            )
+            return completion.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"❌ Title translation error: {e}")
+            return title
 
     def translate_text(self, text: str) -> str:
         """Translate a block of English text/markdown to Hindi."""
@@ -197,7 +216,7 @@ def translate_module_content(module_id: int):
         for step in steps:
             print(f"   📝 Translating step: {step.title}...")
             if step.title:
-                step.hindi_title = translator.translate_text(step.title)
+                step.hindi_title = translator.translate_title(step.title)
             if step.content:
                 step.hindi_content = translator.translate_text(step.content)
             db.commit()

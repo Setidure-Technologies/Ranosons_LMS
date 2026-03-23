@@ -43,7 +43,7 @@ export default function HistoryDetailPage() {
             if (!params.id || !token) return;
             try {
                 // Fetch Attempt
-                const res = await fetch(`http://localhost:8000/api/v1/quiz/history/${params.id}`, {
+                const res = await fetch(`http://localhost:8001/api/v1/quiz/history/${params.id}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
@@ -60,7 +60,7 @@ export default function HistoryDetailPage() {
                     // Fetch Module details to get step titles
                     if (data.module?.id) {
                         try {
-                            const modRes = await fetch(`http://localhost:8000/api/v1/modules/${data.module.id}`, {
+                            const modRes = await fetch(`http://localhost:8001/api/v1/modules/${data.module.id}`, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                             if (modRes.ok) {

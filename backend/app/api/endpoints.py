@@ -155,9 +155,9 @@ def create_module(module: schemas.ModuleCreate, background_tasks: BackgroundTask
     # If video_url is present (and it's a local file we uploaded), trigger processing
     if module.video_url and "static/videos" in module.video_url:
         # Extract relative path from URL (naive approach)
-        # URL: http://localhost:8000/static/videos/xyz.mp4 -> static/videos/xyz.mp4
+        # URL: http://localhost:8001/static/videos/xyz.mp4 -> static/videos/xyz.mp4
         try:
-            video_path = module.video_url.split("8000/")[-1]
+            video_path = module.video_url.split("8001/")[-1]
             
             # Set processing flag
             db_module.is_processing = True
@@ -212,8 +212,8 @@ def delete_module(module_id: int, db: Session = Depends(get_db), current_user: m
     # Cleanup Files
     if db_module.video_url and "static/videos" in db_module.video_url:
         try:
-            # URL: http://localhost:8000/static/videos/xyz.mp4 -> static/videos/xyz.mp4
-            video_path = db_module.video_url.split("8000/")[-1]
+            # URL: http://localhost:8001/static/videos/xyz.mp4 -> static/videos/xyz.mp4
+            video_path = db_module.video_url.split("8001/")[-1]
             if os.path.exists(video_path):
                 os.remove(video_path)
                 print(f"🗑️ Deleted original video: {video_path}")
@@ -293,7 +293,7 @@ async def upload_video(file: UploadFile = File(...), current_user: models.User =
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
         
-    return {"url": f"http://localhost:8000/{file_path}"}
+    return {"url": f"http://localhost:8001/{file_path}"}
 
 # --- Quiz History ---
 

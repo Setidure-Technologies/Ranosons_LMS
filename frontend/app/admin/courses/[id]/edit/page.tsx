@@ -54,7 +54,7 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
 
     const fetchModule = async () => {
         try {
-            const res = await fetch(`http://localhost:8000/api/v1/modules/${params.id}`, {
+            const res = await fetch(`http://localhost:8001/api/v1/modules/${params.id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) {
@@ -101,7 +101,7 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
                 }))
             };
 
-            const res = await fetch(`http://localhost:8000/api/v1/modules/${params.id}`, {
+            const res = await fetch(`http://localhost:8001/api/v1/modules/${params.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
         }
 
         try {
-            const res = await fetch(`http://localhost:8000/api/v1/modules/${params.id}`, {
+            const res = await fetch(`http://localhost:8001/api/v1/modules/${params.id}`, {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${token}`

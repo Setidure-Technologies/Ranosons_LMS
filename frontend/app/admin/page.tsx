@@ -17,13 +17,13 @@ export default function AdminDashboard() {
             if (!token) return;
             try {
                 // Fetch Users Count
-                const usersRes = await fetch('http://localhost:8000/api/v1/users', {
+                const usersRes = await fetch('http://localhost:8001/api/v1/users', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const usersData = await usersRes.json();
 
                 // Fetch Modules Count
-                const modulesRes = await fetch('http://localhost:8000/api/v1/modules', {
+                const modulesRes = await fetch('http://localhost:8001/api/v1/modules', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const modulesData = await modulesRes.json();
@@ -136,7 +136,7 @@ function CoursesList() {
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                const res = await fetch('http://localhost:8000/api/v1/modules', {
+                const res = await fetch('http://localhost:8001/api/v1/modules', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.ok) {

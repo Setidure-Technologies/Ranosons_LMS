@@ -23,7 +23,7 @@ export default function CreateCourse() {
         formData.append('file', file);
 
         try {
-            const res = await fetch('http://localhost:8000/api/v1/upload/video', {
+            const res = await fetch('http://localhost:8001/api/v1/upload/video', {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -79,7 +79,7 @@ export default function CreateCourse() {
                 steps: steps
             };
 
-            const res = await fetch('http://localhost:8000/api/v1/modules', {
+            const res = await fetch('http://localhost:8001/api/v1/modules', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -143,7 +143,7 @@ export default function CreateCourse() {
                                     <label className={`flex-1 cursor-pointer bg-slate-50 border border-slate-200 border-dashed rounded-xl p-4 text-center hover:bg-slate-100 transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                         <input
                                             type="file"
-                                            accept="video/mp4,video/webm"
+                                            accept=".mp4,.mov,.MOV,video/mp4,video/quicktime,video/webm"
                                             className="hidden"
                                             onChange={handleFileUpload}
                                             disabled={uploading}
@@ -154,7 +154,7 @@ export default function CreateCourse() {
                                             ) : (
                                                 <>
                                                     <Video size={24} className="text-blue-500" />
-                                                    <span className="text-sm">Click to upload video (MP4)</span>
+                                                    <span className="text-sm">Click to upload video (MP4 / MOV)</span>
                                                 </>
                                             )}
                                         </div>

@@ -28,7 +28,7 @@ export default function LearningPage() {
 
             try {
                 // Fetch Modules (real training modules)
-                const modulesRes = await fetch('http://localhost:8000/api/v1/modules', {
+                const modulesRes = await fetch('http://localhost:8001/api/v1/modules', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 

@@ -27,7 +27,7 @@ export default function HistoryPage() {
         const fetchHistory = async () => {
             if (!token) return;
             try {
-                const res = await fetch('http://localhost:8000/api/v1/quiz/history', {
+                const res = await fetch('http://localhost:8001/api/v1/quiz/history', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.ok) {

@@ -56,7 +56,7 @@ export default function ModulePage() {
         const fetchModuleData = async () => {
             if (!params.id || !token) return;
             try {
-                const res = await fetch(`http://localhost:8000/api/v1/modules/${params.id}`, {
+                const res = await fetch(`http://localhost:8001/api/v1/modules/${params.id}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -215,7 +215,7 @@ export default function ModulePage() {
         const passed = maxScore > 0 ? (totalScore / maxScore) >= 0.7 : false; // 70% pass rate
 
         try {
-            await fetch('http://localhost:8000/api/v1/quiz/attempts', {
+            await fetch('http://localhost:8001/api/v1/quiz/attempts', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -441,9 +441,17 @@ export default function ModulePage() {
                         {/* Content */}
                         {/* Content */}
                         <div className="bg-[#80ed99]/20 dark:bg-[#80ed99]/10 p-6 rounded-3xl border border-[#80ed99]/30 backdrop-blur-sm">
-                            <h2 className="text-2xl font-bold text-foreground mb-4">{currentStep.title}</h2>
+                            <h2 className="text-2xl font-bold text-foreground mb-4">
+                                {currentStep.title.replace(/\*\*/g, '').replace(/^#+\s*/, '')}
+                            </h2>
                             <div className="prose prose-sm max-w-none mb-6 text-foreground dark:text-slate-300">
-                                <ReactMarkdown>{currentStep.content}</ReactMarkdown>
+                                <ReactMarkdown>{
+                                    // Strip unformatted preamble — start from first ## heading
+                                    (() => {
+                                        const idx = currentStep.content.indexOf('\n## ');
+                                        return idx !== -1 ? currentStep.content.slice(idx + 1) : currentStep.content;
+                                    })()
+                                }</ReactMarkdown>
                             </div>
 
                             <button
