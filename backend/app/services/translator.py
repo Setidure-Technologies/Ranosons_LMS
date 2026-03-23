@@ -11,11 +11,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-<<<<<<< Updated upstream
-=======
 MAX_RETRIES = 3
 
->>>>>>> Stashed changes
+
 TRANSLATION_MODEL = "llama-3.1-8b-instant"
 
 TRANSLATE_PROMPT = """You are an expert English-to-Hindi translator for a factory worker training platform in India. The readers are CNC operators, spring makers, and quality inspectors who speak Hinglish on the shop floor.
@@ -88,7 +86,6 @@ class HindiTranslator:
             raise ValueError("GROQ_API_KEY is required for translation")
         self.client = Groq(api_key=self.api_key)
 
-<<<<<<< Updated upstream
     def translate_title(self, title: str) -> str:
         """Translate a short title/heading to Hindi — output must be equally short."""
         if not title or not title.strip():
@@ -107,15 +104,9 @@ class HindiTranslator:
             print(f"❌ Title translation error: {e}")
             return title
 
-    def translate_text(self, text: str) -> str:
-        """Translate a block of English text/markdown to Hindi."""
-        if not text or not text.strip():
-            return text
-=======
     def _has_hindi(self, text: str) -> bool:
         """Check if text contains Devanagari characters (Hindi)."""
         return bool(re.search(r'[\u0900-\u097F]', text))
->>>>>>> Stashed changes
 
     def _wait_for_rate_limit(self, error_msg: str):
         """Extract wait time from rate limit error and sleep."""
@@ -266,13 +257,6 @@ def translate_module_content(module_id: int, force: bool = False):
         ).all()
 
         for step in steps:
-<<<<<<< Updated upstream
-            print(f"   📝 Translating step: {step.title}...")
-            if step.title:
-                step.hindi_title = translator.translate_title(step.title)
-            if step.content:
-                step.hindi_content = translator.translate_text(step.content)
-=======
             needs_title = step.title and (force or not translator._has_hindi(step.hindi_title or ""))
             needs_content = step.content and (force or not translator._has_hindi(step.hindi_content or ""))
 
@@ -280,7 +264,7 @@ def translate_module_content(module_id: int, force: bool = False):
                 print(f"   📝 Translating step: {step.title}...")
 
             if needs_title:
-                result = translator.translate_text(step.title)
+                result = translator.translate_title(step.title)
                 if result:
                     step.hindi_title = result
 
@@ -289,7 +273,7 @@ def translate_module_content(module_id: int, force: bool = False):
                 if result:
                     step.hindi_content = result
 
->>>>>>> Stashed changes
+
             db.commit()
 
         print(f"✅ Hindi translation complete for Module {module_id}")
