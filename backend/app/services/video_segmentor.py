@@ -12,7 +12,11 @@ import numpy as np
 # --- CONFIGURATION ---
 STRUCTURE_MODEL = "llama-3.1-8b-instant"
 WHISPER_MODEL = "whisper-large-v3"
+<<<<<<< Updated upstream
 VISION_MODEL_DEFAULT = "meta-llama/llama-4-scout-17b-16e-instruct"
+=======
+VISION_MODEL_DEFAULT = "meta-llama/llama-4-scout-17b-16e-instruct"  # Updated from decommissioned 90b model 
+>>>>>>> Stashed changes
 
 # --- PROMPTS ---
 DISCOVERY_PROMPT = """

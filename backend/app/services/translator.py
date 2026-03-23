@@ -4,11 +4,18 @@ Translates English course content to Hindi while preserving Markdown formatting.
 """
 import os
 import json
+import time
+import re
 from groq import Groq
 from dotenv import load_dotenv
 
 load_dotenv()
 
+<<<<<<< Updated upstream
+=======
+MAX_RETRIES = 3
+
+>>>>>>> Stashed changes
 TRANSLATION_MODEL = "llama-3.1-8b-instant"
 
 TRANSLATE_PROMPT = """You are an expert English-to-Hindi translator for a factory worker training platform in India. The readers are CNC operators, spring makers, and quality inspectors who speak Hinglish on the shop floor.
@@ -81,6 +88,7 @@ class HindiTranslator:
             raise ValueError("GROQ_API_KEY is required for translation")
         self.client = Groq(api_key=self.api_key)
 
+<<<<<<< Updated upstream
     def translate_title(self, title: str) -> str:
         """Translate a short title/heading to Hindi — output must be equally short."""
         if not title or not title.strip():
@@ -103,20 +111,54 @@ class HindiTranslator:
         """Translate a block of English text/markdown to Hindi."""
         if not text or not text.strip():
             return text
+=======
+    def _has_hindi(self, text: str) -> bool:
+        """Check if text contains Devanagari characters (Hindi)."""
+        return bool(re.search(r'[\u0900-\u097F]', text))
+>>>>>>> Stashed changes
 
-        try:
-            completion = self.client.chat.completions.create(
-                model=TRANSLATION_MODEL,
-                messages=[
-                    {"role": "system", "content": TRANSLATE_PROMPT},
-                    {"role": "user", "content": text}
-                ],
-                temperature=0.2,
-            )
-            return completion.choices[0].message.content.strip()
-        except Exception as e:
-            print(f"❌ Translation error: {e}")
-            return text  # Fallback to English
+    def _wait_for_rate_limit(self, error_msg: str):
+        """Extract wait time from rate limit error and sleep."""
+        match = re.search(r'Please try again in (\d+)m([\d.]+)s', str(error_msg))
+        if match:
+            wait_seconds = int(match.group(1)) * 60 + float(match.group(2)) + 5  # Add 5s buffer
+            print(f"   ⏳ Rate limited. Waiting {wait_seconds:.0f}s...")
+            time.sleep(wait_seconds)
+        else:
+            print(f"   ⏳ Rate limited. Waiting 60s...")
+            time.sleep(60)
+
+    def translate_text(self, text: str) -> str | None:
+        """Translate a block of English text/markdown to Hindi. Returns None on failure."""
+        if not text or not text.strip():
+            return None
+
+        for attempt in range(MAX_RETRIES):
+            try:
+                completion = self.client.chat.completions.create(
+                    model=TRANSLATION_MODEL,
+                    messages=[
+                        {"role": "system", "content": TRANSLATE_PROMPT},
+                        {"role": "user", "content": text}
+                    ],
+                    temperature=0.2,
+                )
+                result = completion.choices[0].message.content.strip()
+                # Verify the result actually contains Hindi
+                if self._has_hindi(result):
+                    return result
+                else:
+                    print(f"   ⚠️ Translation returned non-Hindi text, retrying ({attempt+1}/{MAX_RETRIES})...")
+                    continue
+            except Exception as e:
+                if '429' in str(e) or 'rate_limit' in str(e):
+                    self._wait_for_rate_limit(e)
+                    continue
+                print(f"❌ Translation error: {e}")
+                return None  # Don't return English fallback
+
+        print(f"❌ Translation failed after {MAX_RETRIES} retries.")
+        return None  # Don't return English fallback
 
     def translate_quiz_data(self, quiz_json_str: str) -> str:
         """Translate quiz JSON string (array of questions) to Hindi."""
@@ -171,14 +213,16 @@ class HindiTranslator:
             return quiz_json_str  # Fallback to English
 
 
-def translate_module_content(module_id: int):
+def translate_module_content(module_id: int, force: bool = False):
     """
     Background task: Translate all English content for a module to Hindi and store in DB.
+    If force=True, re-translate even if Hindi content already exists.
+    Only saves when translation actually produces valid Hindi text.
     """
     from ..database import SessionLocal
     from .. import models
 
-    print(f"🌐 Starting Hindi translation for Module {module_id}...")
+    print(f"🌐 Starting Hindi translation for Module {module_id} (force={force})...")
     db = SessionLocal()
 
     try:
@@ -189,22 +233,30 @@ def translate_module_content(module_id: int):
 
         translator = HindiTranslator()
 
-        # 1. Translate module-level fields
-        if module.objectives:
+        # 1. Translate module-level fields (only if needed)
+        if module.objectives and (force or not translator._has_hindi(module.hindi_objectives or "")):
             print(f"   📝 Translating objectives...")
-            module.hindi_objectives = translator.translate_text(module.objectives)
+            result = translator.translate_text(module.objectives)
+            if result:
+                module.hindi_objectives = result
 
-        if module.applications:
+        if module.applications and (force or not translator._has_hindi(module.hindi_applications or "")):
             print(f"   📝 Translating applications...")
-            module.hindi_applications = translator.translate_text(module.applications)
+            result = translator.translate_text(module.applications)
+            if result:
+                module.hindi_applications = result
 
-        if module.quiz_data:
+        if module.quiz_data and (force or not translator._has_hindi(module.hindi_quiz_data or "")):
             print(f"   📝 Translating quiz data...")
-            module.hindi_quiz_data = translator.translate_quiz_data(module.quiz_data)
+            result = translator.translate_quiz_data(module.quiz_data)
+            if result and translator._has_hindi(result):
+                module.hindi_quiz_data = result
 
-        if module.description:
+        if module.description and (force or not translator._has_hindi(module.hindi_description or "")):
             print(f"   📝 Translating description...")
-            module.hindi_description = translator.translate_text(module.description)
+            result = translator.translate_text(module.description)
+            if result:
+                module.hindi_description = result
 
         db.commit()
 
@@ -214,11 +266,30 @@ def translate_module_content(module_id: int):
         ).all()
 
         for step in steps:
+<<<<<<< Updated upstream
             print(f"   📝 Translating step: {step.title}...")
             if step.title:
                 step.hindi_title = translator.translate_title(step.title)
             if step.content:
                 step.hindi_content = translator.translate_text(step.content)
+=======
+            needs_title = step.title and (force or not translator._has_hindi(step.hindi_title or ""))
+            needs_content = step.content and (force or not translator._has_hindi(step.hindi_content or ""))
+
+            if needs_title or needs_content:
+                print(f"   📝 Translating step: {step.title}...")
+
+            if needs_title:
+                result = translator.translate_text(step.title)
+                if result:
+                    step.hindi_title = result
+
+            if needs_content:
+                result = translator.translate_text(step.content)
+                if result:
+                    step.hindi_content = result
+
+>>>>>>> Stashed changes
             db.commit()
 
         print(f"✅ Hindi translation complete for Module {module_id}")
