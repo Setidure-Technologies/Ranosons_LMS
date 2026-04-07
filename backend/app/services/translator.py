@@ -124,6 +124,10 @@ class HindiTranslator:
         if not text or not text.strip():
             return None
 
+        # If it's a very short text phrase, use the stricter title prompt to prevent AI from expanding it into a full definition
+        if len(text.strip().split()) <= 5:
+            return self.translate_title(text)
+
         for attempt in range(MAX_RETRIES):
             try:
                 completion = self.client.chat.completions.create(

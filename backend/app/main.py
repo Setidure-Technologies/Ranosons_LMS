@@ -39,69 +39,7 @@ app.include_router(endpoints.router, prefix="/api/v1")
 def read_root():
     return {"message": "Welcome to Ranoson Springs LMS API"}
 
-# ...existing code...
-def _create_dev_user_if_missing():
-    db = database.SessionLocal()
-    try:
-        # create or ensure a list of dev users exist
-        dev_users = [
-            {"employee_code": "TEST001", "password": "test123", "is_registered": True, "role_id": None},
-            {"employee_code": "EMP002", "password": "user123", "is_registered": True, "role_id": 1},  # regular user
-        ]
-
-        for udef in dev_users:
-            existing = db.query(models.User).filter(models.User.employee_code == udef["employee_code"]).first()
-            if not existing:
-                user = models.User(
-                    employee_code=udef["employee_code"],
-                    hashed_password=auth.get_password_hash(udef["password"]),
-                    is_registered=udef["is_registered"],
-                )
-                # set role_id if your model has it
-                if hasattr(user, "role_id") and udef.get("role_id") is not None:
-                    setattr(user, "role_id", udef["role_id"])
-                db.add(user)
-                db.commit()
-                db.refresh(user)
-                print(f"Created dev user: {udef['employee_code']} / {udef['password']}")
-            else:
-                print("Dev user already exists:", existing.employee_code)
-
-        # Debug: list users currently in DB (avoid accessing relationships)
-        users = db.query(models.User).all()
-        print("Users in DB:")
-        for u in users:
-            uid = getattr(u, "id", None)
-            code = getattr(u, "employee_code", "<no_code>")
-            role = getattr(u, "role_id", None)
-            registered = getattr(u, "is_registered", None)
-            hashed = getattr(u, "hashed_password", "") or ""
-            print(f" - id={uid} code={code} role_id={role} registered={registered} hashed_prefix={hashed[:24]}")
-
-        # Verify the test passwords against the stored hash (if helper available)
-        if hasattr(auth, "verify_password"):
-            for udef in dev_users:
-                try:
-                    row = db.query(models.User).filter(models.User.employee_code == udef["employee_code"]).first()
-                    ok = auth.verify_password(udef["password"], getattr(row, "hashed_password", ""))
-                    print(f"auth.verify_password('{udef['password']}', {udef['employee_code']}) =>", ok)
-                except Exception as e:
-                    print("Error verifying password for", udef["employee_code"], e)
-
-        # Print DB engine url for sanity
-        try:
-            engine = getattr(database, "engine", None)
-            if engine is not None:
-                print("Database engine url:", str(engine.url))
-        except Exception:
-            pass
-
-    except Exception as e:
-        db.rollback()
-        print("Dev user creation error:", e)
-    finally:
-        db.close()
-# ...existing code...
+# End of root route
 
 @app.on_event("startup")
 def _on_startup():
@@ -112,13 +50,10 @@ def _on_startup():
     # 1b. Add Hindi translation columns if missing (SQLite ALTER TABLE)
     _ensure_hindi_columns()
 
-    # 2. Seed roles + ADMIN001
+    # Seed roles + ADMIN001
     from .seed_mvp import seed_data
     seed_data()
     print("Seed data ensured.")
-
-    # 3. Create dev users
-    _create_dev_user_if_missing()
 
 
 def _ensure_hindi_columns():
